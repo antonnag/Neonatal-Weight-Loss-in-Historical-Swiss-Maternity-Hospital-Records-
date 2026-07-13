@@ -1,0 +1,30 @@
+
+Call:
+glm(formula = excessive_weight_loss_10 ~ pregn_during_WW1 + pregn_during_pandemic + 
+    feeding_cat + ga_model + sex_cat + parity + age_mother, family = binomial(), 
+    data = df_analysis_clean)
+
+Coefficients:
+                          Estimate Std. Error z value Pr(>|z|)    
+(Intercept)               6.532726   0.562226  11.619  < 2e-16 ***
+pregn_during_WW1yes       0.083572   0.057552   1.452   0.1465    
+pregn_during_pandemicyes  0.110983   0.066107   1.679   0.0932 .  
+feeding_catbreastfeeding -0.579170   0.094126  -6.153 7.60e-10 ***
+feeding_catmixed          0.418289   0.104567   4.000 6.33e-05 ***
+feeding_catother          0.374032   0.187699   1.993   0.0463 *  
+ga_model                 -0.199416   0.013963 -14.281  < 2e-16 ***
+sex_catmale              -0.083773   0.050964  -1.644   0.1002    
+parity                   -0.024238   0.012153  -1.994   0.0461 *  
+age_mother                0.003558   0.005064   0.703   0.4823    
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+(Dispersion parameter for binomial family taken to be 1)
+
+    Null deviance: 10553  on 11673  degrees of freedom
+Residual deviance: 10047  on 11664  degrees of freedom
+  (65 observations deleted due to missingness)
+AIC: 10067
+
+Number of Fisher Scoring iterations: 4
+

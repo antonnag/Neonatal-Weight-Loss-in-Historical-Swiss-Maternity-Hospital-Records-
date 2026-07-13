@@ -1,0 +1,28 @@
+
+Call:
+lm(formula = max_weight_loss_pct ~ feeding_cat + flu_in_pregn_and_pandemic + 
+    ga_model + sex_cat + parity + age_mother, data = df_analysis_clean)
+
+Residuals:
+    Min      1Q  Median      3Q     Max 
+-9.6202 -2.3805 -0.3359  1.9797 14.0817 
+
+Coefficients:
+                              Estimate Std. Error t value Pr(>|t|)    
+(Intercept)                  18.621316   0.784308  23.742  < 2e-16 ***
+feeding_catbreastfeeding     -1.063524   0.128941  -8.248  < 2e-16 ***
+feeding_catmixed              0.962820   0.149493   6.441 1.24e-10 ***
+feeding_catother              0.783922   0.280171   2.798 0.005150 ** 
+flu_in_pregn_and_pandemicyes  0.408012   0.207665   1.965 0.049466 *  
+ga_model                     -0.295404   0.019468 -15.174  < 2e-16 ***
+sex_catmale                  -0.092738   0.062682  -1.480 0.139031    
+parity                       -0.071207   0.014957  -4.761 1.95e-06 ***
+age_mother                    0.024224   0.006364   3.807 0.000142 ***
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+Residual standard error: 3.381 on 11665 degrees of freedom
+  (65 observations deleted due to missingness)
+Multiple R-squared:  0.06982,	Adjusted R-squared:  0.06918 
+F-statistic: 109.4 on 8 and 11665 DF,  p-value: < 2.2e-16
+

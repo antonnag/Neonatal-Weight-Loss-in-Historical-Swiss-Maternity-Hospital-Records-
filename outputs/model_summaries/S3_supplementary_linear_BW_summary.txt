@@ -1,0 +1,30 @@
+
+Call:
+lm(formula = max_weight_loss_pct ~ pregn_during_WW1 + pregn_during_pandemic + 
+    feeding_cat + birthweight_100g + sex_cat + parity + age_mother, 
+    data = df_analysis_clean)
+
+Residuals:
+    Min      1Q  Median      3Q     Max 
+-9.1848 -2.4235 -0.3442  1.9739 14.1698 
+
+Coefficients:
+                          Estimate Std. Error t value Pr(>|t|)    
+(Intercept)               8.565329   0.286182  29.930  < 2e-16 ***
+pregn_during_WW1yes       0.139643   0.072950   1.914  0.05561 .  
+pregn_during_pandemicyes  0.439205   0.084342   5.207 1.95e-07 ***
+feeding_catbreastfeeding -1.125539   0.129753  -8.674  < 2e-16 ***
+feeding_catmixed          0.894973   0.150570   5.944 2.86e-09 ***
+feeding_catother          0.776745   0.281985   2.755  0.00589 ** 
+birthweight_100g         -0.050292   0.006552  -7.676 1.77e-14 ***
+sex_catmale              -0.110300   0.063583  -1.735  0.08282 .  
+parity                   -0.063041   0.015139  -4.164 3.15e-05 ***
+age_mother                0.023424   0.006411   3.653  0.00026 ***
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+Residual standard error: 3.401 on 11664 degrees of freedom
+  (65 observations deleted due to missingness)
+Multiple R-squared:  0.05847,	Adjusted R-squared:  0.05774 
+F-statistic: 80.48 on 9 and 11664 DF,  p-value: < 2.2e-16
+
