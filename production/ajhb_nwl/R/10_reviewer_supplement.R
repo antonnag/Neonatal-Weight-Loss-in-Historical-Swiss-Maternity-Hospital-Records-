@@ -2,7 +2,8 @@
 # 10_reviewer_supplement.R
 # Publication-ready supplementary outputs for AJHB reviewer revision
 # ============================================================
-# Depends on objects created in R/09_reviewer_revision.R.
+# Depends on objects created in R/09_reviewer_revision.R and figure helpers
+# created in R/07_figures.R.
 # Creates:
 #   Supplementary Figure S7: timing of first and second postnatal weights
 #   Supplementary Table S8: characteristics by one vs two measurements
@@ -12,7 +13,7 @@
 required_reviewer_objects <- c(
   "table_reviewer_day_a_distribution",
   "table_reviewer_day_b_distribution",
-  "table_reviewer_one_vs_two_characteristics",
+  "df_reviewer_measurements",
   "table_reviewer_linear_main_vs_exact",
   "table_reviewer_logistic_main_vs_exact"
 )
@@ -26,6 +27,55 @@ if (length(missing_reviewer_objects) > 0) {
     "Reviewer supplement cannot run because required objects are missing: ",
     paste(missing_reviewer_objects, collapse = ", ")
   )
+}
+
+# ------------------------------------------------------------
+# Helper: neutral journal-style table export
+# ------------------------------------------------------------
+# This intentionally does NOT use export_gt_png(), because that general helper
+# treats rows such as "Parity" as section headers for Table 1. In reviewer
+# comparison tables, parity is an ordinary characteristic and must not be bold.
+export_reviewer_gt_png <- function(data,
+                                   title,
+                                   filename,
+                                   folder,
+                                   width,
+                                   height,
+                                   font_size = 9,
+                                   groupname_col = NULL) {
+  dir.create(folder, recursive = TRUE, showWarnings = FALSE)
+
+  if (is.null(groupname_col)) {
+    gt_table <- gt::gt(data)
+  } else {
+    gt_table <- gt::gt(data, groupname_col = groupname_col)
+  }
+
+  gt_table <- gt_table %>%
+    gt::tab_header(title = title) %>%
+    gt::tab_options(
+      table.font.size = gt::px(font_size),
+      heading.title.font.size = gt::px(font_size + 2),
+      heading.align = "center",
+      table.width = gt::pct(100),
+      data_row.padding = gt::px(3),
+      column_labels.font.weight = "bold",
+      table.border.top.width = gt::px(1),
+      table.border.bottom.width = gt::px(1),
+      heading.border.bottom.width = gt::px(1),
+      column_labels.border.top.width = gt::px(1),
+      column_labels.border.bottom.width = gt::px(1)
+    )
+
+  gt::gtsave(
+    data = gt_table,
+    filename = file.path(folder, filename),
+    vwidth = width,
+    vheight = height,
+    expand = 20
+  )
+
+  invisible(gt_table)
 }
 
 # ------------------------------------------------------------
@@ -62,7 +112,7 @@ reviewer_timing_key_labels <- reviewer_timing_plot_data %>%
     (measurement == "A. First postnatal weight measurement" & day == 5) |
       (measurement == "B. Second postnatal weight measurement" & day == 10)
   ) %>%
-  mutate(label = paste0(percent, "%"))
+  mutate(label = sprintf("%.1f%%", percent))
 
 supplementary_figure_s7_measurement_timing <- ggplot(
   reviewer_timing_plot_data,
@@ -84,16 +134,11 @@ supplementary_figure_s7_measurement_timing <- ggplot(
     expand = expansion(mult = c(0, 0.10))
   ) +
   labs(
-    x = "Postnatal day of weight measurement",
-    y = "Number of infants"
+    title = "Supplementary Figure S7. Timing of postnatal weight measurements",
+    x = "Postnatal day",
+    y = "Number of newborns"
   ) +
-  theme_classic(base_size = 11) +
-  theme(
-    strip.background = element_blank(),
-    strip.text = element_text(face = "bold", hjust = 0),
-    axis.text.x = element_text(size = 9),
-    plot.margin = margin(10, 16, 10, 16)
-  )
+  paper_plot_theme()
 
 export_figure(
   supplementary_figure_s7_measurement_timing,
@@ -107,11 +152,83 @@ export_figure(
 # ------------------------------------------------------------
 # Supplementary Table S8: one vs two postnatal measurements
 # ------------------------------------------------------------
-supplementary_table_s8_measurement_completeness <-
-  table_reviewer_one_vs_two_characteristics %>%
-  rename(`P value` = p.value)
+# Use the same reader-facing terminology as the existing descriptive tables.
+reviewer_one <- df_reviewer_measurements %>%
+  filter(measurement_group == "One measurement")
+reviewer_two <- df_reviewer_measurements %>%
+  filter(measurement_group == "Two measurements")
 
-export_gt_png(
+supplementary_table_s8_measurement_completeness <- tibble(
+  Characteristic = c(
+    "N",
+    "Maternal age, years, mean (SD)",
+    "Parity, mean (SD)",
+    "Gestational age, weeks, mean (SD)",
+    "Birthweight, g, mean (SD)",
+    "Preterm birth (<37 weeks), n (%)",
+    "Low birthweight (<2500 g), n (%)",
+    "Female sex, n (%)",
+    "Male sex, n (%)",
+    "Artificial feeding, n (%)",
+    "Breastfeeding, n (%)",
+    "Mixed feeding, n (%)",
+    "Other feeding, n (%)"
+  ),
+  `One postnatal weight measurement` = c(
+    as.character(nrow(reviewer_one)),
+    reviewer_fmt_mean_sd(reviewer_one$age_mother, 2),
+    reviewer_fmt_mean_sd(reviewer_one$parity, 2),
+    reviewer_fmt_mean_sd(reviewer_one$ga_model, 2),
+    reviewer_fmt_mean_sd(reviewer_one$birthweight, 0),
+    reviewer_fmt_n_pct(reviewer_one$ptb_group, "preterm"),
+    reviewer_fmt_n_pct(reviewer_one$lbw_group, "low_birthweight"),
+    reviewer_fmt_n_pct(reviewer_one$sex_cat, "female"),
+    reviewer_fmt_n_pct(reviewer_one$sex_cat, "male"),
+    reviewer_fmt_n_pct(reviewer_one$feeding_cat, "artificial"),
+    reviewer_fmt_n_pct(reviewer_one$feeding_cat, "breastfeeding"),
+    reviewer_fmt_n_pct(reviewer_one$feeding_cat, "mixed"),
+    reviewer_fmt_n_pct(reviewer_one$feeding_cat, "other")
+  ),
+  `Two postnatal weight measurements` = c(
+    as.character(nrow(reviewer_two)),
+    reviewer_fmt_mean_sd(reviewer_two$age_mother, 2),
+    reviewer_fmt_mean_sd(reviewer_two$parity, 2),
+    reviewer_fmt_mean_sd(reviewer_two$ga_model, 2),
+    reviewer_fmt_mean_sd(reviewer_two$birthweight, 0),
+    reviewer_fmt_n_pct(reviewer_two$ptb_group, "preterm"),
+    reviewer_fmt_n_pct(reviewer_two$lbw_group, "low_birthweight"),
+    reviewer_fmt_n_pct(reviewer_two$sex_cat, "female"),
+    reviewer_fmt_n_pct(reviewer_two$sex_cat, "male"),
+    reviewer_fmt_n_pct(reviewer_two$feeding_cat, "artificial"),
+    reviewer_fmt_n_pct(reviewer_two$feeding_cat, "breastfeeding"),
+    reviewer_fmt_n_pct(reviewer_two$feeding_cat, "mixed"),
+    reviewer_fmt_n_pct(reviewer_two$feeding_cat, "other")
+  ),
+  Test = c(
+    NA,
+    "t-test", "t-test", "t-test", "t-test",
+    "Chi-square/Fisher", "Chi-square/Fisher",
+    "Chi-square/Fisher", "Chi-square/Fisher",
+    "Chi-square/Fisher", "Chi-square/Fisher", "Chi-square/Fisher", "Chi-square/Fisher"
+  ),
+  `P value` = c(
+    NA,
+    format_p_value(reviewer_safe_t_test("age_mother")),
+    format_p_value(reviewer_safe_t_test("parity")),
+    format_p_value(reviewer_safe_t_test("ga_model")),
+    format_p_value(reviewer_safe_t_test("birthweight")),
+    format_p_value(reviewer_safe_cat_test("ptb_group")),
+    format_p_value(reviewer_safe_cat_test("lbw_group")),
+    format_p_value(reviewer_safe_cat_test("sex_cat")),
+    format_p_value(reviewer_safe_cat_test("sex_cat")),
+    format_p_value(reviewer_safe_cat_test("feeding_cat")),
+    format_p_value(reviewer_safe_cat_test("feeding_cat")),
+    format_p_value(reviewer_safe_cat_test("feeding_cat")),
+    format_p_value(reviewer_safe_cat_test("feeding_cat"))
+  )
+)
+
+export_reviewer_gt_png(
   supplementary_table_s8_measurement_completeness,
   title = paste0(
     "Supplementary Table S8. Maternal and neonatal characteristics according ",
@@ -119,26 +236,14 @@ export_gt_png(
   ),
   filename = "Supplementary_Table_S8_One_vs_Two_Weight_Measurements.png",
   folder = file.path("outputs", "appendix_tables"),
-  width = 1500,
-  height = 1400,
+  width = 1650,
+  height = 1200,
   font_size = 9
 )
 
 # ------------------------------------------------------------
 # Supplementary Table S9: exact day-5/day-10 sensitivity
 # ------------------------------------------------------------
-reviewer_term_labels <- c(
-  "pregn_during_WW1yes" = "Pregnancy overlapping World War I: yes vs no",
-  "pregn_during_pandemicyes" = "Pregnancy overlapping influenza pandemic: yes vs no",
-  "feeding_catbreastfeeding" = "Feeding mode: breastfeeding vs artificial feeding",
-  "feeding_catmixed" = "Feeding mode: mixed feeding vs artificial feeding",
-  "feeding_catother" = "Feeding mode: other vs artificial feeding",
-  "ga_model" = "Gestational age, weeks",
-  "sex_catmale" = "Male sex vs female",
-  "parity" = "Parity",
-  "age_mother" = "Maternal age, years"
-)
-
 format_reviewer_effect_ci <- function(est, low, high) {
   ifelse(
     is.na(est) | is.na(low) | is.na(high),
@@ -150,8 +255,8 @@ format_reviewer_effect_ci <- function(est, low, high) {
 supplementary_table_s9_linear <- table_reviewer_linear_main_vs_exact %>%
   filter(term != "(Intercept)") %>%
   transmute(
-    Outcome = "Maximum neonatal weight loss, % (beta)",
-    Characteristic = dplyr::recode(term, !!!reviewer_term_labels, .default = term),
+    Outcome = "Linear model: maximum neonatal weight loss (%)",
+    Characteristic = label_model_terms(term),
     `Main cohort effect (95% CI)` = format_reviewer_effect_ci(
       main_estimate, main_ci_low, main_ci_high
     ),
@@ -167,8 +272,8 @@ supplementary_table_s9_linear <- table_reviewer_linear_main_vs_exact %>%
 supplementary_table_s9_logistic <- table_reviewer_logistic_main_vs_exact %>%
   filter(term != "(Intercept)") %>%
   transmute(
-    Outcome = "High neonatal weight loss >10% (odds ratio)",
-    Characteristic = dplyr::recode(term, !!!reviewer_term_labels, .default = term),
+    Outcome = "Logistic model: excessive neonatal weight loss >10%",
+    Characteristic = label_model_terms(term),
     `Main cohort effect (95% CI)` = format_reviewer_effect_ci(
       main_odds_ratio, main_ci_low, main_ci_high
     ),
@@ -186,7 +291,7 @@ supplementary_table_s9_exact_day_sensitivity <- bind_rows(
   supplementary_table_s9_logistic
 )
 
-export_gt_png(
+export_reviewer_gt_png(
   supplementary_table_s9_exact_day_sensitivity,
   title = paste0(
     "Supplementary Table S9. Sensitivity analysis restricted to infants with ",
@@ -195,8 +300,9 @@ export_gt_png(
   filename = "Supplementary_Table_S9_Exact_Day5_Day10_Sensitivity.png",
   folder = file.path("outputs", "appendix_tables"),
   width = 1900,
-  height = 1800,
-  font_size = 8
+  height = 1650,
+  font_size = 8,
+  groupname_col = "Outcome"
 )
 
 # Also save publication-ready source tables as a separate workbook.
