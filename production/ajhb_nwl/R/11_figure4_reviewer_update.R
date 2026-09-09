@@ -1,16 +1,15 @@
 # ============================================================
 # 11_figure4_reviewer_update.R
-# AJHB reviewer revision: separate x-axis labels for Figure 4 panels
+# AJHB reviewer revision: final publication-style Figure 4
 # ============================================================
 # Reviewer request: distinguish the linear-model beta coefficient from the
 # logistic-model odds ratio with panel-specific x-axis labels.
-# This file changes presentation only; model estimates are unchanged.
+# Presentation only; model estimates are unchanged.
 
 required_figure4_objects <- c(
   "main_linear_forest",
   "main_logistic_forest",
-  "forest_order",
-  "paper_forest_theme"
+  "forest_order"
 )
 
 missing_figure4_objects <- required_figure4_objects[
@@ -24,51 +23,108 @@ if (length(missing_figure4_objects) > 0) {
   )
 }
 
+if (!requireNamespace("patchwork", quietly = TRUE)) {
+  install.packages("patchwork")
+}
+
 figure_4_linear_data <- main_linear_forest %>%
   mutate(term = factor(term, levels = rev(forest_order)))
 
 figure_4_logistic_data <- main_logistic_forest %>%
   mutate(term = factor(term, levels = rev(forest_order)))
 
-# Left panel carries the shared variable labels.
+# Consistent visual language for both panels.
+figure_4_panel_theme <- theme_classic(base_size = 11) +
+  theme(
+    plot.title = element_text(
+      face = "bold", hjust = 0, size = 11,
+      margin = margin(b = 8)
+    ),
+    axis.title.x = element_text(size = 10.5, margin = margin(t = 7)),
+    axis.text.x = element_text(size = 9.5),
+    axis.text.y = element_text(size = 9.5),
+    axis.title.y = element_blank(),
+    panel.grid.major.y = element_line(colour = "grey92", linewidth = 0.35),
+    panel.grid.major.x = element_blank(),
+    panel.grid.minor = element_blank(),
+    plot.margin = margin(t = 6, r = 12, b = 8, l = 6, unit = "pt")
+  )
+
+# Panel A: linear model. Variable labels appear only here and act as the
+# shared row labels for both panels.
 figure_4_panel_linear <- ggplot(
   figure_4_linear_data,
   aes(x = estimate, y = term, xmin = conf.low, xmax = conf.high)
 ) +
-  geom_vline(xintercept = 0, linetype = "dashed") +
-  geom_pointrange() +
-  labs(
-    title = "A. Maximum NWL (%)",
-    x = "Estimate (β)",
-    y = NULL
+  geom_vline(xintercept = 0, linetype = "dashed", linewidth = 0.55) +
+  geom_errorbarh(height = 0, linewidth = 0.55) +
+  geom_point(size = 2.5) +
+  scale_x_continuous(
+    breaks = pretty(
+      range(c(figure_4_linear_data$conf.low, figure_4_linear_data$conf.high), na.rm = TRUE),
+      n = 5
+    ),
+    expand = expansion(mult = c(0.07, 0.07))
   ) +
-  paper_forest_theme() +
+  labs(
+    title = "A. Maximum neonatal weight loss (%)",
+    x = "Estimate (β)"
+  ) +
+  figure_4_panel_theme +
   theme(
-    plot.title = element_text(face = "bold", hjust = 0.5, size = 10.5, margin = margin(b = 6)),
-    axis.text.y = element_text(size = 8.5),
-    plot.margin = margin(t = 8, r = 14, b = 14, l = 18, unit = "pt")
+    plot.margin = margin(t = 6, r = 16, b = 8, l = 8, unit = "pt")
   )
 
-# Right panel shares the same variables and therefore suppresses duplicated
-# y-axis labels. This leaves substantially more horizontal room for the ORs.
+# Panel B: logistic model. Suppress duplicated row labels while retaining the
+# same y positions so both panels align exactly.
 figure_4_panel_logistic <- ggplot(
   figure_4_logistic_data,
   aes(x = estimate, y = term, xmin = conf.low, xmax = conf.high)
 ) +
-  geom_vline(xintercept = 1, linetype = "dashed") +
-  geom_pointrange() +
-  labs(
-    title = "B. Excessive NWL >10%",
-    x = "Odds ratio (OR)",
-    y = NULL
+  geom_vline(xintercept = 1, linetype = "dashed", linewidth = 0.55) +
+  geom_errorbarh(height = 0, linewidth = 0.55) +
+  geom_point(size = 2.5) +
+  scale_x_continuous(
+    breaks = pretty(
+      range(c(figure_4_logistic_data$conf.low, figure_4_logistic_data$conf.high), na.rm = TRUE),
+      n = 5
+    ),
+    expand = expansion(mult = c(0.07, 0.07))
   ) +
-  paper_forest_theme() +
+  labs(
+    title = "B. Neonatal weight loss >10%",
+    x = "Odds ratio (OR)"
+  ) +
+  figure_4_panel_theme +
   theme(
-    plot.title = element_text(face = "bold", hjust = 0.5, size = 10.5, margin = margin(b = 6)),
     axis.text.y = element_blank(),
     axis.ticks.y = element_blank(),
     axis.line.y = element_blank(),
-    plot.margin = margin(t = 8, r = 18, b = 14, l = 6, unit = "pt")
+    plot.margin = margin(t = 6, r = 8, b = 8, l = 2, unit = "pt")
+  )
+
+# Build a true two-panel figure. This avoids the single generic x-axis label
+# that prompted the reviewer comment.
+figure_4_adjusted_forest <- patchwork::wrap_plots(
+  figure_4_panel_linear,
+  figure_4_panel_logistic,
+  nrow = 1,
+  widths = c(1.35, 1)
+) +
+  patchwork::plot_annotation(
+    title = "Figure 4. Adjusted associations with neonatal weight loss",
+    subtitle = "Gestational-age-adjusted main models",
+    theme = theme(
+      plot.title = element_text(
+        face = "bold", hjust = 0.5, size = 13,
+        margin = margin(b = 4)
+      ),
+      plot.subtitle = element_text(
+        hjust = 0.5, size = 10.5,
+        margin = margin(b = 8)
+      ),
+      plot.margin = margin(t = 8, r = 10, b = 6, l = 10, unit = "pt")
+    )
   )
 
 figure_4_output <- file.path(
@@ -79,48 +135,16 @@ figure_4_output <- file.path(
 
 dir.create(dirname(figure_4_output), recursive = TRUE, showWarnings = FALSE)
 
-png(
+ggsave(
   filename = figure_4_output,
-  width = 11.5,
-  height = 6.2,
-  units = "in",
-  res = 300,
-  bg = "white"
+  plot = figure_4_adjusted_forest,
+  width = 11.2,
+  height = 6.5,
+  dpi = 300,
+  bg = "white",
+  limitsize = FALSE
 )
-
-grid::grid.newpage()
-figure_4_layout <- grid::grid.layout(
-  nrow = 3,
-  ncol = 2,
-  heights = grid::unit(c(0.075, 0.055, 0.87), "npc"),
-  widths = grid::unit(c(0.58, 0.42), "npc")
-)
-grid::pushViewport(grid::viewport(layout = figure_4_layout))
-
-grid::grid.text(
-  "Figure 4. Adjusted associations with neonatal weight loss",
-  vp = grid::viewport(layout.pos.row = 1, layout.pos.col = 1:2),
-  gp = grid::gpar(fontface = "bold", fontsize = 12)
-)
-
-grid::grid.text(
-  "Gestational-age-adjusted main models",
-  vp = grid::viewport(layout.pos.row = 2, layout.pos.col = 1:2),
-  gp = grid::gpar(fontsize = 10)
-)
-
-print(
-  figure_4_panel_linear,
-  vp = grid::viewport(layout.pos.row = 3, layout.pos.col = 1)
-)
-print(
-  figure_4_panel_logistic,
-  vp = grid::viewport(layout.pos.row = 3, layout.pos.col = 2)
-)
-
-grid::popViewport()
-dev.off()
 
 message(
-  "Figure 4 updated with panel-specific x-axis labels and a shared variable axis."
+  "Figure 4 regenerated as two aligned journal-style panels with separate x-axis labels."
 )
