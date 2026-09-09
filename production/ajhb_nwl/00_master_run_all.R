@@ -15,6 +15,7 @@ source("R/05_main_models.R")
 source("R/06_sensitivity_models.R")
 source("R/09_reviewer_revision.R")
 source("R/07_figures.R")
+source("R/11_figure4_reviewer_update.R")
 source("R/10_reviewer_supplement.R")
 source("R/08_export_outputs.R")
 
