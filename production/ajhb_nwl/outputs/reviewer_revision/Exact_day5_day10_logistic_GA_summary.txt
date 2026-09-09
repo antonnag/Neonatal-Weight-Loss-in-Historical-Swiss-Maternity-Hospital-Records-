@@ -1,0 +1,29 @@
+
+Call:
+glm(formula = formula(model_MX_logistic_period_GA), family = binomial(), 
+    data = df_reviewer_exact_day5_day10)
+
+Coefficients:
+                          Estimate Std. Error z value Pr(>|z|)    
+(Intercept)               6.347193   0.633319  10.022  < 2e-16 ***
+pregn_during_WW1yes       0.096963   0.060672   1.598 0.110006    
+pregn_during_pandemicyes  0.077865   0.069372   1.122 0.261676    
+feeding_catbreastfeeding -0.635650   0.102729  -6.188 6.11e-10 ***
+feeding_catmixed          0.373774   0.112914   3.310 0.000932 ***
+feeding_catother          0.262673   0.213372   1.231 0.218303    
+ga_model                 -0.189653   0.015669 -12.103  < 2e-16 ***
+sex_catmale              -0.067562   0.055432  -1.219 0.222910    
+parity                   -0.020415   0.013356  -1.529 0.126386    
+age_mother               -0.001875   0.005506  -0.341 0.733436    
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+(Dispersion parameter for binomial family taken to be 1)
+
+    Null deviance: 8869.9  on 9734  degrees of freedom
+Residual deviance: 8461.0  on 9725  degrees of freedom
+  (44 observations deleted due to missingness)
+AIC: 8481
+
+Number of Fisher Scoring iterations: 4
+

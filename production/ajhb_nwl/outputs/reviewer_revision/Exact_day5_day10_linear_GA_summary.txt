@@ -1,0 +1,28 @@
+
+Call:
+lm(formula = formula(model_MX_linear_period_GA), data = df_reviewer_exact_day5_day10)
+
+Residuals:
+    Min      1Q  Median      3Q     Max 
+-9.6185 -2.3404 -0.3419  1.9637 13.9323 
+
+Coefficients:
+                          Estimate Std. Error t value Pr(>|t|)    
+(Intercept)              17.742380   0.877207  20.226  < 2e-16 ***
+pregn_during_WW1yes       0.107268   0.076006   1.411 0.158185    
+pregn_during_pandemicyes  0.388027   0.086887   4.466 8.06e-06 ***
+feeding_catbreastfeeding -1.147363   0.141068  -8.133 4.68e-16 ***
+feeding_catmixed          0.859564   0.161472   5.323 1.04e-07 ***
+feeding_catother          0.498284   0.313894   1.587 0.112449    
+ga_model                 -0.268697   0.021698 -12.384  < 2e-16 ***
+sex_catmale              -0.075816   0.067943  -1.116 0.264503    
+parity                   -0.060981   0.016325  -3.735 0.000188 ***
+age_mother                0.018300   0.006868   2.665 0.007722 ** 
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+Residual standard error: 3.347 on 9725 degrees of freedom
+  (44 observations deleted due to missingness)
+Multiple R-squared:  0.06978,	Adjusted R-squared:  0.06892 
+F-statistic: 81.06 on 9 and 9725 DF,  p-value: < 2.2e-16
+
