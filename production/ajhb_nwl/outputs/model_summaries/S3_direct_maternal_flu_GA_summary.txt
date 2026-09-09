@@ -1,0 +1,28 @@
+
+Call:
+lm(formula = max_weight_loss_pct ~ feeding_cat + grippe_during_pregnancy + 
+    ga_model + sex_cat + parity + age_mother, data = df_analysis_clean)
+
+Residuals:
+    Min      1Q  Median      3Q     Max 
+-9.6191 -2.3799 -0.3348  1.9805 14.0824 
+
+Coefficients:
+                            Estimate Std. Error t value Pr(>|t|)    
+(Intercept)                18.617163   0.784307  23.737  < 2e-16 ***
+feeding_catbreastfeeding   -1.063018   0.128937  -8.244  < 2e-16 ***
+feeding_catmixed            0.963613   0.149474   6.447 1.19e-10 ***
+feeding_catother            0.782407   0.280172   2.793 0.005237 ** 
+grippe_during_pregnancyyes  0.423778   0.202619   2.091 0.036505 *  
+ga_model                   -0.295320   0.019468 -15.170  < 2e-16 ***
+sex_catmale                -0.092849   0.062680  -1.481 0.138549    
+parity                     -0.071195   0.014957  -4.760 1.96e-06 ***
+age_mother                  0.024207   0.006364   3.804 0.000143 ***
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+Residual standard error: 3.381 on 11665 degrees of freedom
+  (65 observations deleted due to missingness)
+Multiple R-squared:  0.06986,	Adjusted R-squared:  0.06922 
+F-statistic: 109.5 on 8 and 11665 DF,  p-value: < 2.2e-16
+

@@ -1,0 +1,8 @@
+
+# macOS / iCloud
+.DS_Store
+*.icloud
+
+# AJHB local data
+production/ajhb_nwl/data_raw/
+production/ajhb_nwl/data_processed/
