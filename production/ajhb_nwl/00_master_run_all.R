@@ -13,8 +13,8 @@ source("R/03_variables_outcomes.R")
 source("R/04_descriptive_tables.R")
 source("R/05_main_models.R")
 source("R/06_sensitivity_models.R")
+source("R/09_reviewer_revision.R")
 source("R/07_figures.R")
 source("R/08_export_outputs.R")
 
 message("Complete analysis finished. Outputs are in the outputs/ folder.")
- 
