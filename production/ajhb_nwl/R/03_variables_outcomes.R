@@ -162,6 +162,19 @@ feeding_recoding_table <- tibble(
 # ------------------------------------------------------------
 # 4) Core covariates
 # ------------------------------------------------------------
+# Neonatal mortality is defined among liveborn infants as a documented
+# postbirth death occurring within the first 28 days. The pooled historical
+# death-day field is used because it consolidates the available death timing.
+required_mortality_columns <- c("postbirth_death", "day_of_death_pooled")
+missing_mortality_columns <- setdiff(required_mortality_columns, names(df_analysis_clean))
+
+if (length(missing_mortality_columns) > 0) {
+  stop(
+    "Neonatal mortality cannot be derived because required columns are missing: ",
+    paste(missing_mortality_columns, collapse = ", ")
+  )
+}
+
 if ("ga_weeks_corrected" %in% names(df_analysis_clean)) {
   df_analysis_clean <- df_analysis_clean %>%
     mutate(ga_model = ifelse(!is.na(ga_weeks_corrected), ga_weeks_corrected, ga_weeks))
@@ -175,6 +188,17 @@ df_analysis_clean <- df_analysis_clean %>%
     birthweight_100g = birthweight / 100,
     sex_cat = factor(sex, levels = c(0, 1), labels = c("female", "male")),
     excessive_weight_loss_10 = ifelse(max_weight_loss_pct > 10, 1, 0),
+    neonatal_death_28 = case_when(
+      postbirth_death == 1 &
+        !is.na(day_of_death_pooled) &
+        day_of_death_pooled >= 0 &
+        day_of_death_pooled <= 28 ~ 1L,
+      postbirth_death == 0 ~ 0L,
+      postbirth_death == 1 &
+        !is.na(day_of_death_pooled) &
+        day_of_death_pooled > 28 ~ 0L,
+      TRUE ~ NA_integer_
+    ),
     feeding_nonbf = case_when(
       feeding_cat == "breastfeeding" ~ 0,
       feeding_cat %in% c("artificial", "mixed", "other") ~ 1,
