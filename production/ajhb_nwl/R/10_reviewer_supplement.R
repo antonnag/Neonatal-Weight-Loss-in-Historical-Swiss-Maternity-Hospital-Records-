@@ -7,13 +7,15 @@
 # Creates:
 #   Supplementary Figure S7: timing of first and second postnatal weights
 #   Supplementary Table S8: characteristics by one vs two measurements
-#   Supplementary Table S9: main vs exact day-5/day-10 sensitivity models
+#   Supplementary Table S9: exact day-5/day-10 vs other measurement patterns
+#   Supplementary Table S10: main vs exact day-5/day-10 sensitivity models
 # Existing manuscript outputs are not overwritten.
 
 required_reviewer_objects <- c(
   "table_reviewer_day_a_distribution",
   "table_reviewer_day_b_distribution",
   "df_reviewer_measurements",
+  "table_reviewer_exact_vs_other_characteristics",
   "table_reviewer_linear_main_vs_exact",
   "table_reviewer_logistic_main_vs_exact"
 )
@@ -167,6 +169,7 @@ supplementary_table_s8_measurement_completeness <- tibble(
     "Birthweight, g, mean (SD)",
     "Preterm birth (<37 weeks), n (%)",
     "Low birthweight (<2500 g), n (%)",
+    "Neonatal mortality within 28 days, n (%)",
     "Female sex, n (%)",
     "Male sex, n (%)",
     "Artificial feeding, n (%)",
@@ -182,6 +185,7 @@ supplementary_table_s8_measurement_completeness <- tibble(
     reviewer_fmt_mean_sd(reviewer_one$birthweight, 0),
     reviewer_fmt_n_pct(reviewer_one$ptb_group, "preterm"),
     reviewer_fmt_n_pct(reviewer_one$lbw_group, "low_birthweight"),
+    reviewer_fmt_event_n_pct(reviewer_one$neonatal_death_28, 1),
     reviewer_fmt_n_pct(reviewer_one$sex_cat, "female"),
     reviewer_fmt_n_pct(reviewer_one$sex_cat, "male"),
     reviewer_fmt_n_pct(reviewer_one$feeding_cat, "artificial"),
@@ -197,6 +201,7 @@ supplementary_table_s8_measurement_completeness <- tibble(
     reviewer_fmt_mean_sd(reviewer_two$birthweight, 0),
     reviewer_fmt_n_pct(reviewer_two$ptb_group, "preterm"),
     reviewer_fmt_n_pct(reviewer_two$lbw_group, "low_birthweight"),
+    reviewer_fmt_event_n_pct(reviewer_two$neonatal_death_28, 1),
     reviewer_fmt_n_pct(reviewer_two$sex_cat, "female"),
     reviewer_fmt_n_pct(reviewer_two$sex_cat, "male"),
     reviewer_fmt_n_pct(reviewer_two$feeding_cat, "artificial"),
@@ -208,6 +213,7 @@ supplementary_table_s8_measurement_completeness <- tibble(
     NA,
     "t-test", "t-test", "t-test", "t-test",
     "Chi-square/Fisher", "Chi-square/Fisher",
+    "Fisher's exact",
     "Chi-square/Fisher", "Chi-square/Fisher",
     "Chi-square/Fisher", "Chi-square/Fisher", "Chi-square/Fisher", "Chi-square/Fisher"
   ),
@@ -219,6 +225,7 @@ supplementary_table_s8_measurement_completeness <- tibble(
     format_p_value(reviewer_safe_t_test("birthweight")),
     format_p_value(reviewer_safe_cat_test("ptb_group")),
     format_p_value(reviewer_safe_cat_test("lbw_group")),
+    format_p_value(reviewer_safe_fisher_test("neonatal_death_28")),
     format_p_value(reviewer_safe_cat_test("sex_cat")),
     format_p_value(reviewer_safe_cat_test("sex_cat")),
     format_p_value(reviewer_safe_cat_test("feeding_cat")),
@@ -242,7 +249,38 @@ export_reviewer_gt_png(
 )
 
 # ------------------------------------------------------------
-# Supplementary Table S9: exact day-5/day-10 sensitivity
+# Supplementary Table S9: exact days 5 and 10 vs other patterns
+# ------------------------------------------------------------
+supplementary_table_s9_exact_vs_other <- table_reviewer_exact_vs_other_characteristics %>%
+  rename(`P value` = p.value)
+
+# Remove the obsolete pre-revision S9 sensitivity PNG so the output folder
+# cannot contain two different tables carrying the S9 label after a rerun.
+stale_s9_sensitivity_file <- file.path(
+  "outputs",
+  "appendix_tables",
+  "Supplementary_Table_S9_Exact_Day5_Day10_Sensitivity.png"
+)
+if (file.exists(stale_s9_sensitivity_file)) {
+  unlink(stale_s9_sensitivity_file)
+}
+
+export_reviewer_gt_png(
+  supplementary_table_s9_exact_vs_other,
+  title = paste0(
+    "Supplementary Table S9. Maternal and neonatal characteristics of infants ",
+    "with postnatal weights measured exactly on days 5 and 10 versus all other ",
+    "measurement patterns"
+  ),
+  filename = "Supplementary_Table_S9_Exact_Day5_Day10_vs_Other_Patterns.png",
+  folder = file.path("outputs", "appendix_tables"),
+  width = 1800,
+  height = 1250,
+  font_size = 9
+)
+
+# ------------------------------------------------------------
+# Supplementary Table S10: exact day-5/day-10 model sensitivity
 # ------------------------------------------------------------
 format_reviewer_effect_ci <- function(est, low, high) {
   ifelse(
@@ -252,7 +290,7 @@ format_reviewer_effect_ci <- function(est, low, high) {
   )
 }
 
-supplementary_table_s9_linear <- table_reviewer_linear_main_vs_exact %>%
+supplementary_table_s10_linear <- table_reviewer_linear_main_vs_exact %>%
   filter(term != "(Intercept)") %>%
   transmute(
     Outcome = "Linear model: maximum neonatal weight loss (%)",
@@ -269,7 +307,7 @@ supplementary_table_s9_linear <- table_reviewer_linear_main_vs_exact %>%
     `Exact day 5/day 10 P value` = exact_day5_day10_p_value
   )
 
-supplementary_table_s9_logistic <- table_reviewer_logistic_main_vs_exact %>%
+supplementary_table_s10_logistic <- table_reviewer_logistic_main_vs_exact %>%
   filter(term != "(Intercept)") %>%
   transmute(
     Outcome = "Logistic model: excessive neonatal weight loss >10%",
@@ -286,18 +324,18 @@ supplementary_table_s9_logistic <- table_reviewer_logistic_main_vs_exact %>%
     `Exact day 5/day 10 P value` = exact_day5_day10_p_value
   )
 
-supplementary_table_s9_exact_day_sensitivity <- bind_rows(
-  supplementary_table_s9_linear,
-  supplementary_table_s9_logistic
+supplementary_table_s10_exact_day_sensitivity <- bind_rows(
+  supplementary_table_s10_linear,
+  supplementary_table_s10_logistic
 )
 
 export_reviewer_gt_png(
-  supplementary_table_s9_exact_day_sensitivity,
+  supplementary_table_s10_exact_day_sensitivity,
   title = paste0(
-    "Supplementary Table S9. Sensitivity analysis restricted to infants with ",
+    "Supplementary Table S10. Sensitivity analysis restricted to infants with ",
     "postnatal weights measured exactly on days 5 and 10"
   ),
-  filename = "Supplementary_Table_S9_Exact_Day5_Day10_Sensitivity.png",
+  filename = "Supplementary_Table_S10_Exact_Day5_Day10_Sensitivity.png",
   folder = file.path("outputs", "appendix_tables"),
   width = 1900,
   height = 1650,
@@ -311,8 +349,11 @@ write_xlsx(
     Table_S8_One_vs_Two = round_numeric_df(
       supplementary_table_s8_measurement_completeness
     ),
-    Table_S9_Exact_Day_Sensitivity = round_numeric_df(
-      supplementary_table_s9_exact_day_sensitivity
+    Table_S9_Exact_vs_Other = round_numeric_df(
+      supplementary_table_s9_exact_vs_other
+    ),
+    Table_S10_Exact_Day_Sensitivity = round_numeric_df(
+      supplementary_table_s10_exact_day_sensitivity
     ),
     Figure_S7_Plot_Data = round_numeric_df(reviewer_timing_plot_data)
   ),
@@ -324,5 +365,5 @@ write_xlsx(
 )
 
 message(
-  "Reviewer supplement created: Figure S7, Table S8, and Table S9."
+  "Reviewer supplement created: Figure S7 and Tables S8, S9, and S10."
 )
