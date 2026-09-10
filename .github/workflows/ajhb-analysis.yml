@@ -17,7 +17,7 @@ permissions:
 
 concurrency:
   group: ajhb-analysis-main
-  cancel-in-progress: false
+  cancel-in-progress: true
 
 jobs:
   run-analysis:
