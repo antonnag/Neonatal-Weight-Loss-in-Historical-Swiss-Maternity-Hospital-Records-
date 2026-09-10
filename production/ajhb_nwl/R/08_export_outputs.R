@@ -14,6 +14,9 @@
 #   Table S5. BW-adjusted supplementary linear model
 #   Table S6. BW-adjusted supplementary logistic model
 #   Table S7. Stratified breastfeeding subgroup analyses with Cochran-Q heterogeneity tests
+#   Table S8. One vs two postnatal weight measurements
+#   Table S9. Exact day-5/day-10 vs other measurement patterns
+#   Table S10. Exact day-5/day-10 sensitivity models
 
 ensure_export_dirs <- function() {
   dir.create(file.path("outputs", "tables_excel"), recursive = TRUE, showWarnings = FALSE)
@@ -63,6 +66,9 @@ write_xlsx(
     Table_S5_Direct_Maternal_Flu_GA = round_numeric_df(appendix_table_S3_direct_flu_GA),
     Table_S6_Flu_Pregnancy_Pandemic_GA = round_numeric_df(appendix_table_S4_flu_in_pregn_and_pandemic_GA),
     Table_S7_Subgroup_Analyses = round_numeric_df(Supplementary_Table_S6_Subgroup_Analyses),
+    S8_One_vs_Two = round_numeric_df(supplementary_table_s8_measurement_completeness),
+    S9_Exact_vs_Other = round_numeric_df(supplementary_table_s9_exact_vs_other),
+    S10_Exact_Day_Sensitivity = round_numeric_df(supplementary_table_s10_exact_day_sensitivity),
     Working_Feeding_Weightloss = round_numeric_df(table_2_feeding_weightloss),
     Working_Historical_Exposures = round_numeric_df(table_3_period_weightloss),
     Working_Feeding_Recoding = round_numeric_df(feeding_recoding_table),
@@ -210,6 +216,9 @@ placement_guide <- tibble(
     "Supplementary Table S5. BW-adjusted supplementary linear model",
     "Supplementary Table S6. BW-adjusted supplementary logistic model",
     "Supplementary Table S7. Stratified breastfeeding subgroup analyses with Cochran-Q heterogeneity tests",
+    "Supplementary Table S8. One versus two postnatal weight measurements",
+    "Supplementary Table S9. Exact days 5 and 10 versus all other measurement patterns",
+    "Supplementary Table S10. Exact day-5/day-10 sensitivity analysis",
     "Supplementary Figure S1. Breastfeeding effect across subgroups",
     "Supplementary Figure S2. Mean neonatal weight loss by historical exposure",
     "Supplementary Figure S3. Feeding-effect comparison: GA main vs BW supplementary",
@@ -232,6 +241,9 @@ placement_guide <- tibble(
     "Supplement: supplementary BW adjustment check",
     "Supplement: supplementary BW adjustment check",
     "Supplement: subgroup analyses and Cochran-Q heterogeneity tests",
+    "Supplement: reviewer analysis of measurement completeness and vulnerability",
+    "Supplement: reviewer comparison of exact measurement timing versus all other patterns",
+    "Supplement: reviewer sensitivity analysis restricted to exact days 5 and 10",
     "Supplement: subgroup robustness",
     "Supplement: descriptive historical context",
     "Supplement: robustness of feeding effects",
@@ -254,6 +266,9 @@ placement_guide <- tibble(
     "Retained only as supplementary analysis because BW is part of the NWL formula.",
     "Retained only as supplementary analysis because BW is part of the NWL formula.",
     "Supports the statement that breastfeeding association is consistent across strata.",
+    "Shows whether infants with only one postnatal weight differ from infants with two measurements, including neonatal mortality.",
+    "Replicates the S8 characteristics comparison for exact day-5/day-10 measurements versus all other measurement patterns.",
+    "Tests robustness of the primary GA-adjusted models in the prespecified exact day-5/day-10 subcohort.",
     "Best visual support for subgroup consistency.",
     "Useful historical context but weaker than adjusted models.",
     "Robustness visual; not needed as main figure.",
@@ -269,6 +284,9 @@ write_xlsx(
     Table_2_Linear_GA_Main = round_numeric_df(table_MX_linear_period_GA_clean),
     Table_3_Logistic_GA_Main = round_numeric_df(table_MX_logistic_period_GA_clean),
     Table_S1_Excluded_vs_Included = round_numeric_df(Supplementary_Table_S7_Excluded_vs_Included),
+    S8_One_vs_Two = round_numeric_df(supplementary_table_s8_measurement_completeness),
+    S9_Exact_vs_Other = round_numeric_df(supplementary_table_s9_exact_vs_other),
+    S10_Exact_Day_Sensitivity = round_numeric_df(supplementary_table_s10_exact_day_sensitivity),
     Placement_Guide = placement_guide
   ),
   path = file.path("outputs", "tables_excel", "placement_guide_tables_figures_JOURNAL_ALIGNED.xlsx")
