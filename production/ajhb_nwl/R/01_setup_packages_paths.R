@@ -53,81 +53,133 @@ parse_historical_date <- function(x) {
   return(parsed)
 }
 
-# Helper: export gt tables as PNG
-# Helper: export gt tables as PNG with manually controlled widths
-# Helper: export gt tables as PNG with manually controlled widths
-export_gt_png <- function(data,
-                          title,
-                          filename,
-                          folder = file.path("outputs", "tables_png"),
-                          width = 1000,
-                          height = 1000,
-                          font_size = 10) {
-  dir.create(folder, recursive = TRUE, showWarnings = FALSE)
-  
-  gt_table <- data %>%
-    gt() %>%
-    tab_header(title = title) %>%
-    tab_options(
-      table.font.size = px(font_size),
-      heading.title.font.size = px(font_size + 2),
-      heading.align = "center",
-      table.width = pct(100),
-      data_row.padding = px(3),
+# Helper: publication-style gt tables.
+# A single neutral layout is used for main and supplementary tables so that
+# all exported tables have consistent typography, spacing and alignment.
+build_journal_gt <- function(data,
+                             title,
+                             font_size = 10,
+                             groupname_col = NULL,
+                             source_note = NULL) {
+  if (is.null(groupname_col)) {
+    gt_table <- gt::gt(data)
+  } else {
+    gt_table <- gt::gt(data, groupname_col = groupname_col)
+  }
+
+  gt_table <- gt_table %>%
+    gt::tab_header(title = title) %>%
+    gt::tab_options(
+      table.font.size = gt::px(font_size),
+      heading.title.font.size = gt::px(font_size + 1),
+      heading.title.font.weight = "bold",
+      heading.align = "left",
+      heading.padding = gt::px(8),
+      table.width = gt::pct(100),
+      table.background.color = "white",
+      data_row.padding = gt::px(5),
+      column_labels.padding = gt::px(6),
       column_labels.font.weight = "bold",
-      table.border.top.width = px(1),
-      table.border.bottom.width = px(1),
-      heading.border.bottom.width = px(1),
-      column_labels.border.top.width = px(1),
-      column_labels.border.bottom.width = px(1)
+      column_labels.background.color = "#F3F3F3",
+      table.border.top.width = gt::px(1.2),
+      table.border.bottom.width = gt::px(1.2),
+      table.border.top.color = "#222222",
+      table.border.bottom.color = "#222222",
+      heading.border.bottom.width = gt::px(0),
+      column_labels.border.top.width = gt::px(0),
+      column_labels.border.bottom.width = gt::px(1),
+      column_labels.border.bottom.color = "#555555",
+      row_group.font.weight = "bold",
+      row_group.padding = gt::px(5),
+      source_notes.font.size = gt::px(max(font_size - 1, 8))
+    ) %>%
+    gt::tab_style(
+      style = gt::cell_borders(
+        sides = "bottom",
+        color = "#E5E5E5",
+        weight = gt::px(0.5)
+      ),
+      locations = gt::cells_body()
     )
-  
+
+  if (ncol(data) >= 1) {
+    gt_table <- gt_table %>%
+      gt::cols_align(align = "left", columns = 1)
+  }
+  if (ncol(data) >= 2) {
+    gt_table <- gt_table %>%
+      gt::cols_align(align = "center", columns = 2:ncol(data))
+  }
+
   if ("Characteristic" %in% names(data)) {
-    
     main_section_rows <- c(
       "Continuous characteristics",
       "Categorical characteristics",
       "Outcome"
-
     )
-    
     subsection_rows <- c(
       "Parity",
       "Historical exposures",
       "Neonatal characteristics",
       "Feeding characteristics"
     )
-    
+
     gt_table <- gt_table %>%
-      tab_style(
-        style = cell_text(weight = "bold"),
-        locations = cells_body(
+      gt::tab_style(
+        style = list(
+          gt::cell_text(weight = "bold"),
+          gt::cell_fill(color = "#F7F7F7")
+        ),
+        locations = gt::cells_body(
           columns = Characteristic,
           rows = Characteristic %in% main_section_rows
         )
       ) %>%
-      tab_style(
-        style = cell_text(
-          weight = "bold",
-          style = "italic"
-        ),
-        locations = cells_body(
+      gt::tab_style(
+        style = gt::cell_text(weight = "bold", style = "italic"),
+        locations = gt::cells_body(
           columns = Characteristic,
           rows = Characteristic %in% subsection_rows
         )
       )
   }
-  
-  gtsave(
+
+  if (!is.null(source_note) && nzchar(source_note)) {
+    gt_table <- gt_table %>%
+      gt::tab_source_note(source_note = source_note)
+  }
+
+  gt_table
+}
+
+export_gt_png <- function(data,
+                          title,
+                          filename,
+                          folder = file.path("outputs", "tables_png"),
+                          width = 1200,
+                          height = 1000,
+                          font_size = 10,
+                          groupname_col = NULL,
+                          source_note = NULL) {
+  dir.create(folder, recursive = TRUE, showWarnings = FALSE)
+
+  gt_table <- build_journal_gt(
+    data = data,
+    title = title,
+    font_size = font_size,
+    groupname_col = groupname_col,
+    source_note = source_note
+  )
+
+  gt::gtsave(
     data = gt_table,
     filename = file.path(folder, filename),
     vwidth = width,
     vheight = height,
     expand = 20
   )
-  
-  return(gt_table)
 
+  invisible(gt_table)
 }
 
 FIGURE_DPI <- 600
