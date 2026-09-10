@@ -111,5 +111,6 @@ jobs:
             echo "No output changes to commit."
           else
             git commit -m "Regenerate AJHB analysis outputs"
+            git pull --rebase origin main
             git push origin HEAD:main
           fi
