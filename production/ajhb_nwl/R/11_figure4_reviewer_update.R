@@ -1,11 +1,19 @@
 # ============================================================
 # 11_figure4_reviewer_update.R
-# AJHB reviewer revision: final publication-style Figure 4
+# AJHB reviewer revision: Figure 4 panel construction
 # ============================================================
 # Reviewer request: distinguish the linear-model beta coefficient from the
 # logistic-model odds ratio with panel-specific x-axis labels.
-# Presentation only; model estimates are unchanged.
+#
+# Responsibility of this file:
+#   - prepare the two aligned Figure 4 panels with the correct axis semantics.
+#
+# Final composition, publication styling, and PNG export are centralized in
+# R/12_publication_restyle_outputs.R. Model estimates are unchanged.
 
+# ------------------------------------------------------------
+# 0) Required objects
+# ------------------------------------------------------------
 required_figure4_objects <- c(
   "main_linear_forest",
   "main_logistic_forest",
@@ -23,17 +31,18 @@ if (length(missing_figure4_objects) > 0) {
   )
 }
 
-if (!requireNamespace("patchwork", quietly = TRUE)) {
-  install.packages("patchwork")
-}
-
+# ------------------------------------------------------------
+# 1) Panel data
+# ------------------------------------------------------------
 figure_4_linear_data <- main_linear_forest %>%
   mutate(term = factor(term, levels = rev(forest_order)))
 
 figure_4_logistic_data <- main_logistic_forest %>%
   mutate(term = factor(term, levels = rev(forest_order)))
 
-# Consistent visual language for both panels.
+# ------------------------------------------------------------
+# 2) Shared panel theme
+# ------------------------------------------------------------
 figure_4_panel_theme <- theme_classic(base_size = 11) +
   theme(
     plot.title = element_text(
@@ -50,8 +59,10 @@ figure_4_panel_theme <- theme_classic(base_size = 11) +
     plot.margin = margin(t = 6, r = 12, b = 8, l = 6, unit = "pt")
   )
 
-# Panel A: linear model. Variable labels appear only here and act as the
-# shared row labels for both panels.
+# ------------------------------------------------------------
+# 3) Panel A: linear model
+# ------------------------------------------------------------
+# Variable labels appear only here and act as shared row labels for both panels.
 figure_4_panel_linear <- ggplot(
   figure_4_linear_data,
   aes(x = estimate, y = term, xmin = conf.low, xmax = conf.high)
@@ -61,7 +72,10 @@ figure_4_panel_linear <- ggplot(
   geom_point(size = 2.5) +
   scale_x_continuous(
     breaks = pretty(
-      range(c(figure_4_linear_data$conf.low, figure_4_linear_data$conf.high), na.rm = TRUE),
+      range(
+        c(figure_4_linear_data$conf.low, figure_4_linear_data$conf.high),
+        na.rm = TRUE
+      ),
       n = 5
     ),
     expand = expansion(mult = c(0.07, 0.07))
@@ -75,8 +89,10 @@ figure_4_panel_linear <- ggplot(
     plot.margin = margin(t = 6, r = 16, b = 8, l = 8, unit = "pt")
   )
 
-# Panel B: logistic model. Suppress duplicated row labels while retaining the
-# same y positions so both panels align exactly.
+# ------------------------------------------------------------
+# 4) Panel B: logistic model
+# ------------------------------------------------------------
+# Duplicated row labels are suppressed while y positions remain aligned.
 figure_4_panel_logistic <- ggplot(
   figure_4_logistic_data,
   aes(x = estimate, y = term, xmin = conf.low, xmax = conf.high)
@@ -86,7 +102,10 @@ figure_4_panel_logistic <- ggplot(
   geom_point(size = 2.5) +
   scale_x_continuous(
     breaks = pretty(
-      range(c(figure_4_logistic_data$conf.low, figure_4_logistic_data$conf.high), na.rm = TRUE),
+      range(
+        c(figure_4_logistic_data$conf.low, figure_4_logistic_data$conf.high),
+        na.rm = TRUE
+      ),
       n = 5
     ),
     expand = expansion(mult = c(0.07, 0.07))
@@ -103,48 +122,6 @@ figure_4_panel_logistic <- ggplot(
     plot.margin = margin(t = 6, r = 8, b = 8, l = 2, unit = "pt")
   )
 
-# Build a true two-panel figure. This avoids the single generic x-axis label
-# that prompted the reviewer comment.
-figure_4_adjusted_forest <- patchwork::wrap_plots(
-  figure_4_panel_linear,
-  figure_4_panel_logistic,
-  nrow = 1,
-  widths = c(1.35, 1)
-) +
-  patchwork::plot_annotation(
-    title = "Figure 4. Adjusted associations with neonatal weight loss",
-    subtitle = "Gestational-age-adjusted main models",
-    theme = theme(
-      plot.title = element_text(
-        face = "bold", hjust = 0.5, size = 13,
-        margin = margin(b = 4)
-      ),
-      plot.subtitle = element_text(
-        hjust = 0.5, size = 10.5,
-        margin = margin(b = 8)
-      ),
-      plot.margin = margin(t = 8, r = 10, b = 6, l = 10, unit = "pt")
-    )
-  )
-
-figure_4_output <- file.path(
-  "outputs",
-  "figures",
-  "Figure_4_Adjusted_Associations_Forestplot.png"
-)
-
-dir.create(dirname(figure_4_output), recursive = TRUE, showWarnings = FALSE)
-
-ggsave(
-  filename = figure_4_output,
-  plot = figure_4_adjusted_forest,
-  width = 11.2,
-  height = 6.5,
-  dpi = 300,
-  bg = "white",
-  limitsize = FALSE
-)
-
 message(
-  "Figure 4 regenerated as two aligned journal-style panels with separate x-axis labels."
+  "Figure 4 reviewer panels prepared; final composition and export are handled in R/12_publication_restyle_outputs.R."
 )
