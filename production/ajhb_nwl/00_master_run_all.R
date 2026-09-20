@@ -18,5 +18,6 @@ source("R/07_figures.R")
 source("R/10_reviewer_supplement.R")
 source("R/08_export_outputs.R")
 source("R/11_figure4_reviewer_update.R")
+source("R/12_publication_restyle_outputs.R")
 
 message("Complete analysis finished. Outputs are in the outputs/ folder.")
