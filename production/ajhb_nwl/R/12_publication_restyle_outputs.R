@@ -2,10 +2,14 @@
 # 12_publication_restyle_outputs.R
 # Central publication-style pass for all manuscript outputs
 # ============================================================
-#   - standardize all main/supplementary table layouts
-#   - use a continuous grey title/header area for every PNG table
-#   - re-export existing output objects at publication resolution
+# Responsibility of this file:
+#   - apply final figure typography and export publication PNGs;
+#   - apply one consistent GT style to main/supplementary tables;
+#   - size table PNGs according to their visible content;
+#   - act as the single final presentation/export layer.
 #
+# Statistical objects and estimates are created upstream and are not changed
+# here. This script is intentionally sourced last by 00_master_run_all.R.
 
 PUBLICATION_DPI <- 600
 PUBLICATION_BASE_SIZE <- 11
@@ -22,7 +26,7 @@ PUBLICATION_TABLE_COLUMN_BG <- "#F2F2F2"
 PUBLICATION_TABLE_SECTION_BG <- "#F7F7F7"
 
 # ------------------------------------------------------------
-# Figures: one typography layer, preserving plot-specific geometry/grid
+# 1) Figure helpers and shared typography
 # ------------------------------------------------------------
 publication_theme_override <- ggplot2::theme(
   plot.title = ggplot2::element_text(
@@ -66,7 +70,10 @@ save_publication_plot <- function(plot,
   )
 }
 
-# Figure 1 - without x/y scales
+# ------------------------------------------------------------
+# 2) Main and supplementary figure exports
+# ------------------------------------------------------------
+# Figure 1 is a flowchart and therefore intentionally has no x/y scales.
 if (exists("figure_1_study_flowchart", inherits = TRUE)) {
   figure_1_flowchart_publication <- figure_1_study_flowchart +
     ggplot2::labs(x = NULL, y = NULL) +
@@ -93,37 +100,92 @@ if (exists("figure_1_study_flowchart", inherits = TRUE)) {
   )
 }
 
-# All remaining ggplot figures retain the existing global publication override.
+# Named specifications keep object, filename, destination, and dimensions
+# readable without relying on positional spec[[n]] indices.
 figure_specs <- list(
-  list("figure_2_weightloss_distribution", "Figure_2_Weightloss_Distribution.png", "figures", 7, 5),
-  list("figure_3_weightloss_by_feeding", "Figure_3_Weightloss_By_Feeding.png", "figures", 7, 5),
-  list("appendix_figure_s1_subgroup_forest", "Supplementary_Figure_S1_Breastfeeding_Subgroups.png", "appendix_figures", 12, 7),
-  list("appendix_figure_s2_historical_exposures", "Supplementary_Figure_S2_Historical_Exposures.png", "appendix_figures", 14, 7.5),
-  list("appendix_figure_s3_sensitivity_forestplot", "Supplementary_Figure_S3_Sensitivity_Forestplot.png", "appendix_figures", 14, 7.5),
-  list("appendix_figure_s4_excessive_weightloss", "Supplementary_Figure_S4_Excessive_Weightloss_By_Feeding.png", "appendix_figures", 12, 7),
-  list("appendix_figure_s5_weightloss_by_year", "Supplementary_Figure_S5_Weightloss_By_Year.png", "appendix_figures", 8, 5),
-  list("appendix_figure_s6_feeding_by_year", "Supplementary_Figure_S6_Feeding_By_Birthyear.png", "appendix_figures", 8, 5),
-  list("supplementary_figure_s7_measurement_timing", "Supplementary_Figure_S7_Weight_Measurement_Timing.png", "appendix_figures", 9, 7)
+  list(
+    object = "figure_2_weightloss_distribution",
+    filename = "Figure_2_Weightloss_Distribution.png",
+    folder = "figures",
+    width = 7,
+    height = 5
+  ),
+  list(
+    object = "figure_3_weightloss_by_feeding",
+    filename = "Figure_3_Weightloss_By_Feeding.png",
+    folder = "figures",
+    width = 7,
+    height = 5
+  ),
+  list(
+    object = "appendix_figure_s1_subgroup_forest",
+    filename = "Supplementary_Figure_S1_Breastfeeding_Subgroups.png",
+    folder = "appendix_figures",
+    width = 12,
+    height = 7
+  ),
+  list(
+    object = "appendix_figure_s2_historical_exposures",
+    filename = "Supplementary_Figure_S2_Historical_Exposures.png",
+    folder = "appendix_figures",
+    width = 14,
+    height = 7.5
+  ),
+  list(
+    object = "appendix_figure_s3_sensitivity_forestplot",
+    filename = "Supplementary_Figure_S3_Sensitivity_Forestplot.png",
+    folder = "appendix_figures",
+    width = 14,
+    height = 7.5
+  ),
+  list(
+    object = "appendix_figure_s4_excessive_weightloss",
+    filename = "Supplementary_Figure_S4_Excessive_Weightloss_By_Feeding.png",
+    folder = "appendix_figures",
+    width = 12,
+    height = 7
+  ),
+  list(
+    object = "appendix_figure_s5_weightloss_by_year",
+    filename = "Supplementary_Figure_S5_Weightloss_By_Year.png",
+    folder = "appendix_figures",
+    width = 8,
+    height = 5
+  ),
+  list(
+    object = "appendix_figure_s6_feeding_by_year",
+    filename = "Supplementary_Figure_S6_Feeding_By_Birthyear.png",
+    folder = "appendix_figures",
+    width = 8,
+    height = 5
+  ),
+  list(
+    object = "supplementary_figure_s7_measurement_timing",
+    filename = "Supplementary_Figure_S7_Weight_Measurement_Timing.png",
+    folder = "appendix_figures",
+    width = 9,
+    height = 7
+  )
 )
 
 for (spec in figure_specs) {
-  object_name <- spec[[1]]
-  if (!exists(object_name, inherits = TRUE)) {
-    warning("Publication restyle skipped missing figure object: ", object_name)
+  if (!exists(spec$object, inherits = TRUE)) {
+    warning("Publication restyle skipped missing figure object: ", spec$object)
     next
   }
+
   save_publication_plot(
-    publicationize_plot(get(object_name, inherits = TRUE)),
-    filename = spec[[2]],
-    folder = file.path("outputs", spec[[3]]),
-    width = spec[[4]],
-    height = spec[[5]]
+    publicationize_plot(get(spec$object, inherits = TRUE)),
+    filename = spec$filename,
+    folder = file.path("outputs", spec$folder),
+    width = spec$width,
+    height = spec$height
   )
 }
 
-# Figure 4 is a patchwork object with panel-specific x-axis labels. Rebuild it
-# from the reviewer-update panels so the separate beta/OR axes are retained,
-# while the figure-level typography matches every other figure.
+# Figure 4 is constructed from the reviewer-specific panels prepared in R/11.
+# Recomposition here preserves separate beta/OR x-axes while keeping all final
+# publication typography and export settings in this one script.
 if (exists("figure_4_panel_linear", inherits = TRUE) &&
     exists("figure_4_panel_logistic", inherits = TRUE) &&
     requireNamespace("patchwork", quietly = TRUE)) {
@@ -187,7 +249,7 @@ if (exists("figure_4_panel_linear", inherits = TRUE) &&
 }
 
 # ------------------------------------------------------------
-# Tables: one GT style for main and supplementary tables
+# 3) Shared GT table styling
 # ------------------------------------------------------------
 build_publication_gt <- function(data,
                                  title,
@@ -241,11 +303,18 @@ build_publication_gt <- function(data,
 
   if (length(visible_columns) >= 1) {
     tbl <- tbl %>%
-      gt::cols_align(align = "left", columns = dplyr::all_of(visible_columns[1]))
+      gt::cols_align(
+        align = "left",
+        columns = dplyr::all_of(visible_columns[1])
+      )
   }
+
   if (length(visible_columns) >= 2) {
     tbl <- tbl %>%
-      gt::cols_align(align = "center", columns = dplyr::all_of(visible_columns[-1]))
+      gt::cols_align(
+        align = "center",
+        columns = dplyr::all_of(visible_columns[-1])
+      )
   }
 
   if (highlight_sections && "Characteristic" %in% visible_columns) {
@@ -284,6 +353,9 @@ build_publication_gt <- function(data,
   tbl
 }
 
+# ------------------------------------------------------------
+# 4) Content-aware table width
+# ------------------------------------------------------------
 estimate_publication_table_width <- function(data,
                                              groupname_col = NULL,
                                              max_width = 1600) {
@@ -300,15 +372,18 @@ estimate_publication_table_width <- function(data,
   estimate_column_px <- function(column_name) {
     values <- as.character(data[[column_name]])
     values <- values[!is.na(values)]
-    longest <- max(nchar(c(column_name, values), type = "width"), na.rm = TRUE)
+    longest <- max(
+      nchar(c(column_name, values), type = "width"),
+      na.rm = TRUE
+    )
 
     if (identical(column_name, "Characteristic")) {
-      # Allow descriptive labels to wrap instead of making the whole table huge.
+      # Descriptive labels may wrap rather than forcing a very wide table.
       longest <- min(longest, 52)
       return(max(190, min(390, 24 + longest * 6.6)))
     }
 
-    # Result/value columns are kept compact but still sized to their content.
+    # Result/value columns stay compact but remain large enough for their data.
     longest <- min(longest, 32)
     max(95, min(230, 24 + longest * 6.4))
   }
@@ -319,7 +394,12 @@ estimate_publication_table_width <- function(data,
     numeric(1)
   )) + 50
 
-  max_width <- if (is.null(max_width) || !is.finite(max_width)) 1600 else max_width
+  max_width <- if (is.null(max_width) || !is.finite(max_width)) {
+    1600
+  } else {
+    max_width
+  }
+
   max(520, min(ceiling(estimated_width), max_width))
 }
 
@@ -359,14 +439,17 @@ save_publication_table <- function(data,
   invisible(tbl)
 }
 
-# Main tables
+# ------------------------------------------------------------
+# 5) Main table exports
+# ------------------------------------------------------------
 if (exists("table_1_population", inherits = TRUE)) {
   save_publication_table(
     table_1_population,
     "Table 1. Characteristics of the analytical study population",
     "Table_1_Cohort_Characteristics.png",
     file.path("outputs", "tables_png"),
-    width = 1200, height = 1200,
+    width = 1200,
+    height = 1200,
     highlight_sections = TRUE
   )
 }
@@ -377,7 +460,8 @@ if (exists("table_MX_linear_period_GA_clean", inherits = TRUE)) {
     "Table 2. Linear regression: maximum neonatal weight loss, gestational-age-adjusted main model",
     "Table_2_Linear_GA_Main.png",
     file.path("outputs", "tables_png"),
-    width = 1400, height = 1100
+    width = 1400,
+    height = 1100
   )
 }
 
@@ -387,64 +471,159 @@ if (exists("table_MX_logistic_period_GA_clean", inherits = TRUE)) {
     "Table 3. Logistic regression: high neonatal weight loss >10%, gestational-age-adjusted main model",
     "Table_3_Logistic_GA_Main.png",
     file.path("outputs", "tables_png"),
-    width = 1400, height = 1100
+    width = 1400,
+    height = 1100
   )
 }
 
-# Supplementary tables S1-S10
+# ------------------------------------------------------------
+# 6) Supplementary table exports S1-S10
+# ------------------------------------------------------------
+# Remove the obsolete pre-renumbering S9 file if it is still present locally.
+stale_s9_sensitivity_file <- file.path(
+  "outputs",
+  "appendix_tables",
+  "Supplementary_Table_S9_Exact_Day5_Day10_Sensitivity.png"
+)
+if (file.exists(stale_s9_sensitivity_file)) {
+  unlink(stale_s9_sensitivity_file)
+}
+
 supplementary_table_specs <- list(
-  list("Supplementary_Table_S7_Excluded_vs_Included",
-       "Supplementary Table S1. Characteristics of included infants and infants excluded because of non-evaluable neonatal weight trajectories",
-       "Supplementary_Table_S1_Excluded_vs_Included.png", 1500, 1200, NULL, TRUE, 9),
-  list("table_6_feeding_allocation",
-       "Supplementary Table S2. Maternal and neonatal characteristics according to feeding mode",
-       "Supplementary_Table_S2_Feeding_Allocation.png", 1500, 1250, NULL, FALSE, 9),
-  list("appendix_table_S3_direct_flu_GA",
-       "Supplementary Table S3. Direct maternal influenza model, gestational-age-adjusted",
-       "Supplementary_Table_S3_Direct_Maternal_Flu_GA.png", 1450, 1100, NULL, FALSE, 9),
-  list("appendix_table_S4_flu_in_pregn_and_pandemic_GA",
-       "Supplementary Table S4. Influenza in pregnancy during pandemic model, gestational-age-adjusted",
-       "Supplementary_Table_S4_Flu_Pregnancy_Pandemic_GA.png", 1450, 1100, NULL, FALSE, 9),
-  list("table_MX_linear_period_BW",
-       "Supplementary Table S5. Birthweight-adjusted sensitivity analysis: maximum neonatal weight loss",
-       "Supplementary_Table_S5_BW_Linear_Supplementary.png", 1450, 1100, NULL, FALSE, 9),
-  list("table_MX_logistic_period_BW",
-       "Supplementary Table S6. Birthweight-adjusted sensitivity analysis: high neonatal weight loss >10%",
-       "Supplementary_Table_S6_BW_Logistic_Supplementary.png", 1450, 1100, NULL, FALSE, 9),
-  list("Supplementary_Table_S6_Subgroup_Analyses",
-       "Supplementary Table S7. Stratified breastfeeding subgroup analyses with Cochran-Q heterogeneity tests",
-       "Supplementary_Table_S7_Subgroup_Analyses.png", 1600, 1500, NULL, FALSE, 9),
-  list("supplementary_table_s8_measurement_completeness",
-       "Supplementary Table S8. Maternal and neonatal characteristics according to availability of one versus two postnatal weight measurements",
-       "Supplementary_Table_S8_One_vs_Two_Weight_Measurements.png", 1650, 1200, NULL, FALSE, 9),
-  list("supplementary_table_s9_exact_vs_other",
-       "Supplementary Table S9. Maternal and neonatal characteristics of infants with postnatal weights measured exactly on days 5 and 10 versus all other measurement patterns",
-       "Supplementary_Table_S9_Exact_Day5_Day10_vs_Other_Patterns.png", 1800, 1250, NULL, FALSE, 9),
-  list("supplementary_table_s10_exact_day_sensitivity",
-       "Supplementary Table S10. Sensitivity analysis restricted to infants with postnatal weights measured exactly on days 5 and 10",
-       "Supplementary_Table_S10_Exact_Day5_Day10_Sensitivity.png", 1900, 1650, "Outcome", FALSE, 8)
+  list(
+    object = "Supplementary_Table_S7_Excluded_vs_Included",
+    title = paste0(
+      "Supplementary Table S1. Characteristics of included infants and infants ",
+      "excluded because of non-evaluable neonatal weight trajectories"
+    ),
+    filename = "Supplementary_Table_S1_Excluded_vs_Included.png",
+    width = 1500,
+    height = 1200,
+    groupname_col = NULL,
+    highlight_sections = TRUE,
+    font_size = 9
+  ),
+  list(
+    object = "table_6_feeding_allocation",
+    title = "Supplementary Table S2. Maternal and neonatal characteristics according to feeding mode",
+    filename = "Supplementary_Table_S2_Feeding_Allocation.png",
+    width = 1500,
+    height = 1250,
+    groupname_col = NULL,
+    highlight_sections = FALSE,
+    font_size = 9
+  ),
+  list(
+    object = "appendix_table_S3_direct_flu_GA",
+    title = "Supplementary Table S3. Direct maternal influenza model, gestational-age-adjusted",
+    filename = "Supplementary_Table_S3_Direct_Maternal_Flu_GA.png",
+    width = 1450,
+    height = 1100,
+    groupname_col = NULL,
+    highlight_sections = FALSE,
+    font_size = 9
+  ),
+  list(
+    object = "appendix_table_S4_flu_in_pregn_and_pandemic_GA",
+    title = "Supplementary Table S4. Influenza in pregnancy during pandemic model, gestational-age-adjusted",
+    filename = "Supplementary_Table_S4_Flu_Pregnancy_Pandemic_GA.png",
+    width = 1450,
+    height = 1100,
+    groupname_col = NULL,
+    highlight_sections = FALSE,
+    font_size = 9
+  ),
+  list(
+    object = "table_MX_linear_period_BW",
+    title = "Supplementary Table S5. Birthweight-adjusted sensitivity analysis: maximum neonatal weight loss",
+    filename = "Supplementary_Table_S5_BW_Linear_Supplementary.png",
+    width = 1450,
+    height = 1100,
+    groupname_col = NULL,
+    highlight_sections = FALSE,
+    font_size = 9
+  ),
+  list(
+    object = "table_MX_logistic_period_BW",
+    title = "Supplementary Table S6. Birthweight-adjusted sensitivity analysis: high neonatal weight loss >10%",
+    filename = "Supplementary_Table_S6_BW_Logistic_Supplementary.png",
+    width = 1450,
+    height = 1100,
+    groupname_col = NULL,
+    highlight_sections = FALSE,
+    font_size = 9
+  ),
+  list(
+    object = "Supplementary_Table_S6_Subgroup_Analyses",
+    title = "Supplementary Table S7. Stratified breastfeeding subgroup analyses with Cochran-Q heterogeneity tests",
+    filename = "Supplementary_Table_S7_Subgroup_Analyses.png",
+    width = 1600,
+    height = 1500,
+    groupname_col = NULL,
+    highlight_sections = FALSE,
+    font_size = 9
+  ),
+  list(
+    object = "supplementary_table_s8_measurement_completeness",
+    title = paste0(
+      "Supplementary Table S8. Maternal and neonatal characteristics according ",
+      "to availability of one versus two postnatal weight measurements"
+    ),
+    filename = "Supplementary_Table_S8_One_vs_Two_Weight_Measurements.png",
+    width = 1650,
+    height = 1200,
+    groupname_col = NULL,
+    highlight_sections = FALSE,
+    font_size = 9
+  ),
+  list(
+    object = "supplementary_table_s9_exact_vs_other",
+    title = paste0(
+      "Supplementary Table S9. Maternal and neonatal characteristics of infants ",
+      "with postnatal weights measured exactly on days 5 and 10 versus all other ",
+      "measurement patterns"
+    ),
+    filename = "Supplementary_Table_S9_Exact_Day5_Day10_vs_Other_Patterns.png",
+    width = 1800,
+    height = 1250,
+    groupname_col = NULL,
+    highlight_sections = FALSE,
+    font_size = 9
+  ),
+  list(
+    object = "supplementary_table_s10_exact_day_sensitivity",
+    title = paste0(
+      "Supplementary Table S10. Sensitivity analysis restricted to infants with ",
+      "postnatal weights measured exactly on days 5 and 10"
+    ),
+    filename = "Supplementary_Table_S10_Exact_Day5_Day10_Sensitivity.png",
+    width = 1900,
+    height = 1650,
+    groupname_col = "Outcome",
+    highlight_sections = FALSE,
+    font_size = 8
+  )
 )
 
 for (spec in supplementary_table_specs) {
-  object_name <- spec[[1]]
-  if (!exists(object_name, inherits = TRUE)) {
-    warning("Publication restyle skipped missing table object: ", object_name)
+  if (!exists(spec$object, inherits = TRUE)) {
+    warning("Publication restyle skipped missing table object: ", spec$object)
     next
   }
 
   save_publication_table(
-    data = round_numeric_df(get(object_name, inherits = TRUE)),
-    title = spec[[2]],
-    filename = spec[[3]],
+    data = round_numeric_df(get(spec$object, inherits = TRUE)),
+    title = spec$title,
+    filename = spec$filename,
     folder = file.path("outputs", "appendix_tables"),
-    width = spec[[4]],
-    height = spec[[5]],
-    groupname_col = spec[[6]],
-    highlight_sections = spec[[7]],
-    font_size = spec[[8]]
+    width = spec$width,
+    height = spec$height,
+    groupname_col = spec$groupname_col,
+    highlight_sections = spec$highlight_sections,
+    font_size = spec$font_size
   )
 }
 
 message(
-  "Publication styling pass complete: figures and Tables S1-S10 were re-exported with unified typography and table headers."
+  "Publication styling pass complete: final figures and Tables S1-S10 exported from R/12."
 )
