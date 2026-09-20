@@ -22,7 +22,7 @@ age_mother                0.018300   0.006868   2.665 0.007722 **
 Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
 
 Residual standard error: 3.347 on 9725 degrees of freedom
-  (44 observations deleted due to missingness)
+  (44 Beobachtungen als fehlend gelöscht)
 Multiple R-squared:  0.06978,	Adjusted R-squared:  0.06892 
 F-statistic: 81.06 on 9 and 9725 DF,  p-value: < 2.2e-16
 

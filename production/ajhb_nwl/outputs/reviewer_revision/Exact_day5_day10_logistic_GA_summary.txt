@@ -22,7 +22,7 @@ Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’
 
     Null deviance: 8869.9  on 9734  degrees of freedom
 Residual deviance: 8461.0  on 9725  degrees of freedom
-  (44 observations deleted due to missingness)
+  (44 Beobachtungen als fehlend gelöscht)
 AIC: 8481
 
 Number of Fisher Scoring iterations: 4
