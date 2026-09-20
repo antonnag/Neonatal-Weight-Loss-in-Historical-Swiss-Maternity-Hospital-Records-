@@ -5,6 +5,7 @@
 # Responsibility of this file:
 #   - apply final figure typography and export publication PNGs;
 #   - apply one consistent GT style to main/supplementary tables;
+#   - right-align numeric/result columns for easier table scanning;
 #   - size table PNGs according to their visible content;
 #   - act as the single final presentation/export layer.
 #
@@ -251,6 +252,41 @@ if (exists("figure_4_panel_linear", inherits = TRUE) &&
 # ------------------------------------------------------------
 # 3) Shared GT table styling
 # ------------------------------------------------------------
+# Many publication-result columns are stored as character strings after
+# formatting (e.g. "0.94 (0.65 to 1.23)" or "1234 (16.8%)"). Detect those
+# columns from their displayed content so they can still be right-aligned.
+is_publication_numeric_column <- function(data, column_name) {
+  column_data <- data[[column_name]]
+
+  if (is.numeric(column_data) || is.integer(column_data)) {
+    return(TRUE)
+  }
+
+  normalized_name <- tolower(gsub("[._]+", " ", column_name))
+  if (grepl(
+    "\\b(p value|value|estimate|effect|odds ratio|ci|percent|percentage|mean|sd|median|iqr)\\b",
+    normalized_name,
+    perl = TRUE
+  )) {
+    return(TRUE)
+  }
+
+  values <- trimws(as.character(column_data))
+  values <- values[!is.na(values) & nzchar(values)]
+
+  if (length(values) == 0) {
+    return(FALSE)
+  }
+
+  numeric_like <- grepl(
+    "^[[:space:]]*[<>≤≥]?=?[[:space:]]*[+-]?(?:[0-9]+(?:[.,][0-9]+)?|[.][0-9]+)",
+    values,
+    perl = TRUE
+  )
+
+  mean(numeric_like) >= 0.5
+}
+
 build_publication_gt <- function(data,
                                  title,
                                  groupname_col = NULL,
@@ -310,11 +346,29 @@ build_publication_gt <- function(data,
   }
 
   if (length(visible_columns) >= 2) {
-    tbl <- tbl %>%
-      gt::cols_align(
-        align = "center",
-        columns = dplyr::all_of(visible_columns[-1])
-      )
+    remaining_columns <- visible_columns[-1]
+    numeric_columns <- remaining_columns[vapply(
+      remaining_columns,
+      function(column_name) is_publication_numeric_column(data, column_name),
+      logical(1)
+    )]
+    text_columns <- setdiff(remaining_columns, numeric_columns)
+
+    if (length(numeric_columns) > 0) {
+      tbl <- tbl %>%
+        gt::cols_align(
+          align = "right",
+          columns = dplyr::all_of(numeric_columns)
+        )
+    }
+
+    if (length(text_columns) > 0) {
+      tbl <- tbl %>%
+        gt::cols_align(
+          align = "center",
+          columns = dplyr::all_of(text_columns)
+        )
+    }
   }
 
   if (highlight_sections && "Characteristic" %in% visible_columns) {
