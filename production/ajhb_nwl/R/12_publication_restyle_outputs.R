@@ -255,13 +255,6 @@ build_publication_gt <- function(data,
       gt::cols_align(align = "center", columns = dplyr::all_of(visible_columns[-1]))
   }
 
-  # Descriptive tables should reserve more space for values/results instead of
-  # allowing the Characteristic label column to dominate the rendered width.
-  if ("Characteristic" %in% visible_columns) {
-    tbl <- tbl %>%
-      gt::cols_width(Characteristic ~ gt::pct(38))
-  }
-
   if (highlight_sections && "Characteristic" %in% visible_columns) {
     main_section_rows <- c(
       "Continuous characteristics",
@@ -298,6 +291,45 @@ build_publication_gt <- function(data,
   tbl
 }
 
+estimate_publication_table_width <- function(data,
+                                             groupname_col = NULL,
+                                             max_width = 1600) {
+  visible_columns <- if (is.null(groupname_col)) {
+    names(data)
+  } else {
+    setdiff(names(data), groupname_col)
+  }
+
+  if (length(visible_columns) == 0) {
+    return(min(max_width, 700))
+  }
+
+  estimate_column_px <- function(column_name) {
+    values <- as.character(data[[column_name]])
+    values <- values[!is.na(values)]
+    longest <- max(nchar(c(column_name, values), type = "width"), na.rm = TRUE)
+
+    if (identical(column_name, "Characteristic")) {
+      # Allow descriptive labels to wrap instead of making the whole table huge.
+      longest <- min(longest, 52)
+      return(max(190, min(390, 24 + longest * 6.6)))
+    }
+
+    # Result/value columns are kept compact but still sized to their content.
+    longest <- min(longest, 32)
+    max(95, min(230, 24 + longest * 6.4))
+  }
+
+  estimated_width <- sum(vapply(
+    visible_columns,
+    estimate_column_px,
+    numeric(1)
+  )) + 50
+
+  max_width <- if (is.null(max_width) || !is.finite(max_width)) 1600 else max_width
+  max(520, min(ceiling(estimated_width), max_width))
+}
+
 save_publication_table <- function(data,
                                    title,
                                    filename,
@@ -317,10 +349,16 @@ save_publication_table <- function(data,
     font_size = font_size
   )
 
+  render_width <- estimate_publication_table_width(
+    data = data,
+    groupname_col = groupname_col,
+    max_width = width
+  )
+
   gt::gtsave(
     data = tbl,
     filename = file.path(folder, filename),
-    vwidth = width,
+    vwidth = render_width,
     vheight = height,
     expand = 20
   )
