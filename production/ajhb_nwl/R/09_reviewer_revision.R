@@ -509,9 +509,6 @@ table_reviewer_logistic_main_vs_exact <- table_MX_logistic_period_GA %>%
 
 # ------------------------------------------------------------
 # Reviewer-specific outputs
-# ------------------------------------------------------------
-# Keep these separate from the established manuscript outputs so changes to the
-# reviewer analyses do not silently overwrite the pre-reviewer baseline.
 reviewer_output_dir <- file.path("outputs", "reviewer_revision")
 dir.create(reviewer_output_dir, recursive = TRUE, showWarnings = FALSE)
 

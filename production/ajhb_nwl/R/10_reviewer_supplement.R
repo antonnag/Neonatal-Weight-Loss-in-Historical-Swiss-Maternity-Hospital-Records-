@@ -34,9 +34,6 @@ if (length(missing_reviewer_objects) > 0) {
 # ------------------------------------------------------------
 # Helper: neutral journal-style table export
 # ------------------------------------------------------------
-# This intentionally does NOT use export_gt_png(), because that general helper
-# treats rows such as "Parity" as section headers for Table 1. In reviewer
-# comparison tables, parity is an ordinary characteristic and must not be bold.
 export_reviewer_gt_png <- function(data,
                                    title,
                                    filename,
@@ -254,8 +251,6 @@ export_reviewer_gt_png(
 supplementary_table_s9_exact_vs_other <- table_reviewer_exact_vs_other_characteristics %>%
   rename(`P value` = p.value)
 
-# Remove the obsolete pre-revision S9 sensitivity PNG so the output folder
-# cannot contain two different tables carrying the S9 label after a rerun.
 stale_s9_sensitivity_file <- file.path(
   "outputs",
   "appendix_tables",
