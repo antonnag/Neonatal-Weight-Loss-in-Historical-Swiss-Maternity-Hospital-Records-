@@ -1,16 +1,20 @@
 # ============================================================
 # 10_reviewer_supplement.R
-# Publication-ready supplementary outputs for AJHB reviewer revision
+# AJHB reviewer supplement objects
 # ============================================================
 # Depends on objects created in R/09_reviewer_revision.R and figure helpers
 # created in R/07_figures.R.
-# Creates:
-#   Supplementary Figure S7: timing of first and second postnatal weights
-#   Supplementary Table S8: characteristics by one vs two measurements
-#   Supplementary Table S9: exact day-5/day-10 vs other measurement patterns
-#   Supplementary Table S10: main vs exact day-5/day-10 sensitivity models
-# Existing manuscript outputs are not overwritten.
+#
+# Responsibility of this file:
+#   - build Supplementary Figure S7 and Tables S8-S10 as R objects;
+#   - export the reviewer-supplement source workbook.
+#
+# Final PNG styling and export are intentionally centralized in
+# R/12_publication_restyle_outputs.R.
 
+# ------------------------------------------------------------
+# 0) Required reviewer objects
+# ------------------------------------------------------------
 required_reviewer_objects <- c(
   "table_reviewer_day_a_distribution",
   "table_reviewer_day_b_distribution",
@@ -32,53 +36,7 @@ if (length(missing_reviewer_objects) > 0) {
 }
 
 # ------------------------------------------------------------
-# Helper: neutral journal-style table export
-# ------------------------------------------------------------
-export_reviewer_gt_png <- function(data,
-                                   title,
-                                   filename,
-                                   folder,
-                                   width,
-                                   height,
-                                   font_size = 9,
-                                   groupname_col = NULL) {
-  dir.create(folder, recursive = TRUE, showWarnings = FALSE)
-
-  if (is.null(groupname_col)) {
-    gt_table <- gt::gt(data)
-  } else {
-    gt_table <- gt::gt(data, groupname_col = groupname_col)
-  }
-
-  gt_table <- gt_table %>%
-    gt::tab_header(title = title) %>%
-    gt::tab_options(
-      table.font.size = gt::px(font_size),
-      heading.title.font.size = gt::px(font_size + 2),
-      heading.align = "center",
-      table.width = gt::pct(100),
-      data_row.padding = gt::px(3),
-      column_labels.font.weight = "bold",
-      table.border.top.width = gt::px(1),
-      table.border.bottom.width = gt::px(1),
-      heading.border.bottom.width = gt::px(1),
-      column_labels.border.top.width = gt::px(1),
-      column_labels.border.bottom.width = gt::px(1)
-    )
-
-  gt::gtsave(
-    data = gt_table,
-    filename = file.path(folder, filename),
-    vwidth = width,
-    vheight = height,
-    expand = 20
-  )
-
-  invisible(gt_table)
-}
-
-# ------------------------------------------------------------
-# Supplementary Figure S7: actual measurement timing
+# 1) Supplementary Figure S7: actual measurement timing
 # ------------------------------------------------------------
 reviewer_timing_plot_data <- bind_rows(
   table_reviewer_day_a_distribution %>%
@@ -139,19 +97,9 @@ supplementary_figure_s7_measurement_timing <- ggplot(
   ) +
   paper_plot_theme()
 
-export_figure(
-  supplementary_figure_s7_measurement_timing,
-  filename = "Supplementary_Figure_S7_Weight_Measurement_Timing.png",
-  folder = file.path("outputs", "appendix_figures"),
-  width = 9,
-  height = 7,
-  dpi = FIGURE_DPI
-)
-
 # ------------------------------------------------------------
-# Supplementary Table S8: one vs two postnatal measurements
+# 2) Supplementary Table S8: one vs two postnatal measurements
 # ------------------------------------------------------------
-# Use the same reader-facing terminology as the existing descriptive tables.
 reviewer_one <- df_reviewer_measurements %>%
   filter(measurement_group == "One measurement")
 reviewer_two <- df_reviewer_measurements %>%
@@ -232,50 +180,14 @@ supplementary_table_s8_measurement_completeness <- tibble(
   )
 )
 
-export_reviewer_gt_png(
-  supplementary_table_s8_measurement_completeness,
-  title = paste0(
-    "Supplementary Table S8. Maternal and neonatal characteristics according ",
-    "to availability of one versus two postnatal weight measurements"
-  ),
-  filename = "Supplementary_Table_S8_One_vs_Two_Weight_Measurements.png",
-  folder = file.path("outputs", "appendix_tables"),
-  width = 1650,
-  height = 1200,
-  font_size = 9
-)
-
 # ------------------------------------------------------------
-# Supplementary Table S9: exact days 5 and 10 vs other patterns
+# 3) Supplementary Table S9: exact days 5 and 10 vs other patterns
 # ------------------------------------------------------------
 supplementary_table_s9_exact_vs_other <- table_reviewer_exact_vs_other_characteristics %>%
   rename(`P value` = p.value)
 
-stale_s9_sensitivity_file <- file.path(
-  "outputs",
-  "appendix_tables",
-  "Supplementary_Table_S9_Exact_Day5_Day10_Sensitivity.png"
-)
-if (file.exists(stale_s9_sensitivity_file)) {
-  unlink(stale_s9_sensitivity_file)
-}
-
-export_reviewer_gt_png(
-  supplementary_table_s9_exact_vs_other,
-  title = paste0(
-    "Supplementary Table S9. Maternal and neonatal characteristics of infants ",
-    "with postnatal weights measured exactly on days 5 and 10 versus all other ",
-    "measurement patterns"
-  ),
-  filename = "Supplementary_Table_S9_Exact_Day5_Day10_vs_Other_Patterns.png",
-  folder = file.path("outputs", "appendix_tables"),
-  width = 1800,
-  height = 1250,
-  font_size = 9
-)
-
 # ------------------------------------------------------------
-# Supplementary Table S10: exact day-5/day-10 model sensitivity
+# 4) Supplementary Table S10: exact day-5/day-10 model sensitivity
 # ------------------------------------------------------------
 format_reviewer_effect_ci <- function(est, low, high) {
   ifelse(
@@ -324,21 +236,12 @@ supplementary_table_s10_exact_day_sensitivity <- bind_rows(
   supplementary_table_s10_logistic
 )
 
-export_reviewer_gt_png(
-  supplementary_table_s10_exact_day_sensitivity,
-  title = paste0(
-    "Supplementary Table S10. Sensitivity analysis restricted to infants with ",
-    "postnatal weights measured exactly on days 5 and 10"
-  ),
-  filename = "Supplementary_Table_S10_Exact_Day5_Day10_Sensitivity.png",
-  folder = file.path("outputs", "appendix_tables"),
-  width = 1900,
-  height = 1650,
-  font_size = 8,
-  groupname_col = "Outcome"
-)
+# ------------------------------------------------------------
+# 5) Reviewer supplement source workbook
+# ------------------------------------------------------------
+reviewer_supplement_output_dir <- file.path("outputs", "reviewer_revision")
+dir.create(reviewer_supplement_output_dir, recursive = TRUE, showWarnings = FALSE)
 
-# Also save publication-ready source tables as a separate workbook.
 write_xlsx(
   list(
     Table_S8_One_vs_Two = round_numeric_df(
@@ -353,12 +256,11 @@ write_xlsx(
     Figure_S7_Plot_Data = round_numeric_df(reviewer_timing_plot_data)
   ),
   path = file.path(
-    "outputs",
-    "reviewer_revision",
+    reviewer_supplement_output_dir,
     "AJHB_reviewer_supplement_ready.xlsx"
   )
 )
 
 message(
-  "Reviewer supplement created: Figure S7 and Tables S8, S9, and S10."
+  "Reviewer supplement objects created; final PNG export is handled in R/12_publication_restyle_outputs.R."
 )
