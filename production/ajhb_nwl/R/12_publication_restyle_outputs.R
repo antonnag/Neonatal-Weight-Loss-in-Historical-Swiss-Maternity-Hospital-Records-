@@ -275,7 +275,7 @@ build_publication_gt <- function(data,
           gt::cell_fill(color = PUBLICATION_TABLE_SECTION_BG)
         ),
         locations = gt::cells_body(
-          columns = Characteristic,
+          columns = dplyr::any_of(c("Characteristic", "Value")),
           rows = Characteristic %in% main_section_rows
         )
       ) %>%
