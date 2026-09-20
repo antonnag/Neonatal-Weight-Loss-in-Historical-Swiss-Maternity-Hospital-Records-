@@ -71,8 +71,37 @@ save_publication_plot <- function(plot,
   )
 }
 
+# Figure 1 is a flowchart rather than an x/y data display. Keep it inside the
+# central publication styling pass, but suppress all axes explicitly so the
+# global figure typography does not re-introduce technical x/y scales.
+if (exists("figure_1_study_flowchart", inherits = TRUE)) {
+  figure_1_flowchart_publication <- figure_1_study_flowchart +
+    ggplot2::labs(x = NULL, y = NULL) +
+    ggplot2::theme_void() +
+    ggplot2::theme(
+      plot.title = ggplot2::element_text(
+        face = "bold",
+        hjust = 0.5,
+        size = PUBLICATION_TITLE_SIZE,
+        margin = ggplot2::margin(b = 8)
+      ),
+      plot.margin = ggplot2::margin(
+        t = 18, r = 28, b = 18, l = 28,
+        unit = "pt"
+      )
+    )
+
+  save_publication_plot(
+    figure_1_flowchart_publication,
+    filename = "Figure_1_Study_Flowchart.png",
+    folder = file.path("outputs", "figures"),
+    width = 7,
+    height = 6
+  )
+}
+
+# All remaining ggplot figures retain the existing global publication override.
 figure_specs <- list(
-  list("figure_1_study_flowchart", "Figure_1_Study_Flowchart.png", "figures", 7, 6),
   list("figure_2_weightloss_distribution", "Figure_2_Weightloss_Distribution.png", "figures", 7, 5),
   list("figure_3_weightloss_by_feeding", "Figure_3_Weightloss_By_Feeding.png", "figures", 7, 5),
   list("appendix_figure_s1_subgroup_forest", "Supplementary_Figure_S1_Breastfeeding_Subgroups.png", "appendix_figures", 12, 7),
