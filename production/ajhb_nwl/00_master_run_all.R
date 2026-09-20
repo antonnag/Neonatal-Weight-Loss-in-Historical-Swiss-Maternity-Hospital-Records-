@@ -19,5 +19,6 @@ source("R/10_reviewer_supplement.R")
 source("R/08_export_outputs.R")
 source("R/11_figure4_reviewer_update.R")
 source("R/12_publication_restyle_outputs.R")
+source("R/13_fix_figure1_flowchart.R")
 
 message("Complete analysis finished. Outputs are in the outputs/ folder.")
