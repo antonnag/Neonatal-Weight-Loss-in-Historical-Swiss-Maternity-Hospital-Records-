@@ -255,6 +255,13 @@ build_publication_gt <- function(data,
       gt::cols_align(align = "center", columns = dplyr::all_of(visible_columns[-1]))
   }
 
+  # Descriptive tables should reserve more space for values/results instead of
+  # allowing the Characteristic label column to dominate the rendered width.
+  if ("Characteristic" %in% visible_columns) {
+    tbl <- tbl %>%
+      gt::cols_width(Characteristic ~ gt::pct(38))
+  }
+
   if (highlight_sections && "Characteristic" %in% visible_columns) {
     main_section_rows <- c(
       "Continuous characteristics",
