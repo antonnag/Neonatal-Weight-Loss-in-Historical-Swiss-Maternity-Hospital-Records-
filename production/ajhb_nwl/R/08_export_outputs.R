@@ -53,22 +53,24 @@ table_MX_logistic_period_GA_clean <- table_MX_logistic_period_GA %>% clean_main_
 table_STR_logistic_excel_inputs_export <- table_STR_logistic_excel_inputs %>%
   dplyr::select(-dplyr::any_of(c("model_formula", "excel_note")))
 
+# Journal-aligned workbook: sheet names match the submitted Supplementary Tables S1-S10.
+
 write_xlsx(
   list(
     Table_1_Cohort_Characteristics = round_numeric_df(table_1_population),
     Table_2_Linear_GA_Main = round_numeric_df(table_MX_linear_period_GA_clean),
     Table_3_Logistic_GA_Main = round_numeric_df(table_MX_logistic_period_GA_clean),
     Table_S1_Excluded_vs_Included = round_numeric_df(Supplementary_Table_S7_Excluded_vs_Included),
-    Table_S1_Exclusion_Reasons = round_numeric_df(Supplementary_Table_S7_Exclusion_Reasons),
     Table_S2_Feeding_Allocation = round_numeric_df(table_6_feeding_allocation),
-    Table_S3_BW_Linear_Supplementary = round_numeric_df(table_MX_linear_period_BW),
-    Table_S4_BW_Logistic_Supplementary = round_numeric_df(table_MX_logistic_period_BW),
-    Table_S5_Direct_Maternal_Flu_GA = round_numeric_df(appendix_table_S3_direct_flu_GA),
-    Table_S6_Flu_Pregnancy_Pandemic_GA = round_numeric_df(appendix_table_S4_flu_in_pregn_and_pandemic_GA),
+    Table_S3_Maternal_Flu_GA = round_numeric_df(appendix_table_S3_direct_flu_GA),
+    Table_S4_Mat_Flu_Pandemic_GA = round_numeric_df(appendix_table_S4_flu_in_pregn_and_pandemic_GA),
+    Table_S5_BW_Linear_Model = round_numeric_df(table_MX_linear_period_BW),
+    Table_S6_BW_Logistic_Model = round_numeric_df(table_MX_logistic_period_BW),
     Table_S7_Subgroup_Analyses = round_numeric_df(Supplementary_Table_S6_Subgroup_Analyses),
     S8_One_vs_Two = round_numeric_df(supplementary_table_s8_measurement_completeness),
     S9_Exact_vs_Other = round_numeric_df(supplementary_table_s9_exact_vs_other),
     S10_Exact_Day_Sensitivity = round_numeric_df(supplementary_table_s10_exact_day_sensitivity),
+    Working_Exclusion_Reasons = round_numeric_df(Supplementary_Table_S7_Exclusion_Reasons),
     Working_Feeding_Weightloss = round_numeric_df(table_2_feeding_weightloss),
     Working_Historical_Exposures = round_numeric_df(table_3_period_weightloss),
     Working_Feeding_Recoding = round_numeric_df(feeding_recoding_table),
